@@ -20,5 +20,7 @@ On power on you hve to choose the game score limit between a normal 21 point gam
 ## Misc Parts
 
 P4 64x32 LED Display w/HUB75 interface
+
 [50 Watt 5v power supply](https://smile.amazon.com/gp/product/B019GYOCMM/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1)
+
 3 SPST Buttons
