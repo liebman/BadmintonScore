@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <title>Badminton Scoreboard</title>
+      <meta charset="utf-8"> 
+      <meta name = "viewport" content = "width = device-width, initial-scale = 1">
+      <script src = "https://code.jquery.com/jquery-1.11.3.min.js"></script>
+      <script>
+
+      var mode = "STARTING";
+      var group = "guest";
+      var ws;
+      function init() {
+         document.getElementById("password").addEventListener("keyup", function(event) {
+            console.log("key up", event.key);
+            if (event.key === "Enter") {
+               enableAdmin();
+            }
+         });
+         ws_connect();
+      }
+      function ws_connect(){
+         ws = new WebSocket("wss://"+window.location.host+"/ws");
+         ws.onopen = function(event) {
+            console.log("web socket open, asking for refresh");
+            var cmd = {action:"refresh"};
+            ws.send(JSON.stringify(cmd));
+         };
+         ws.onmessage = function (event) {
+            var data = JSON.parse(event.data);
+            setScoreValues(data);
+            console.log(data);
+         }
+         ws.onerror = function (err) {
+            console.log("web socket error:", err.message, 'Closing socket');
+            ws.close();
+         }
+         ws.onclose = function (event) {
+            console.log("web socket closed!");
+            setTimeout(function() {
+               ws_connect();
+            }, 1000);
+         }
+      }
+
+      document.addEventListener('DOMContentLoaded', function(){ 
+         init();
+      }, false);
+//      $(document).ready(function() {
+//         init();
+//      });
+      function setScoreValues(data) {
+         mode  = data.mode;
+         group = data.group;
+         $("#group").text(group);
+         if (group == "admin")
+         {
+            $(".admin").show();
+            $(".guest").hide();
+         }
+         else
+         {
+            $(".admin").hide();
+            $(".guest").show();
+         }
+         if (mode == "CHOOSING")
+         {
+            $("#lhs").text(15);
+            $("#rhs").text(21);
+            $("#mode").text("Choose Game Limit above!");
+            return;
+         }
+         $("#mode").text(mode);
+         $("#lhs").text(data.lhs.score);
+         $(".lhs").css('background-color', data.lhs.color);
+         $("#rhs").text(data.rhs.score);
+         $(".rhs").css('background-color', data.rhs.color);
+      }
+
+      function chooseLimits(limit, max_limit)
+      {
+         if (mode == "CHOOSING")
+         {
+            var cmd;
+            ws.send(JSON.stringify({action:"limits",limit:limit,max_limit:max_limit}));
+         }
+      }
+      function swapScore() {
+         if (mode != "CHOOSING")
+         {
+            ws.send(JSON.stringify({action:"swap"}));
+         }
+      }
+      function resetScore() {
+         if (mode != "CHOOSING")
+         {
+            ws.send(JSON.stringify({action:"reset"}));
+         }
+      }
+      function changeScore(side, delta) {
+         if (mode != "CHOOSING")
+         {
+            ws.send(JSON.stringify({action: "update", side: side, delta: delta}));
+         }
+      }
+      function enableAdmin() {
+         ws.send(JSON.stringify({action: "enable", password: document.getElementById("password").value}));
+      }
+      </script>
+      <style>
+      .score {
+         font-size: 10em;
+      }
+      .admin {
+         visibility: hidden;
+      }
+      col {
+         width: 50%;
+      }
+      table td {
+         background: none;
+         border: 0px;
+         border-collapse: collapse;
+         text-align: center;
+      }
+      button {
+         font-size: 4em;
+         padding: 0;
+         border-style: solid;
+         border-width: 4px;
+         width: 100%;
+         background: none;
+      }
+      .lhs {
+         background-color: #ff0000;
+         text-align: center;
+      }
+      .rhs {
+         background-color: #0000ff;
+         text-align: center;
+      }
+      </style>
+   </head>
+
+   <body>
+      <table width="100%" cellspacing="0">
+         <colgroup>
+            <col span="1" id="lhs_col" class="lhs"/>
+            <col span="1" id="rhs_col" class="rhs"/>
+         </colgroup>
+         <tr class="admin">
+            <td><button id="lhs_up" onclick="changeScore('lhs', 1)">+</button></td>
+            <td><button id="rhs_up" onclick="changeScore('rhs', 1)">+</button></td>
+         </tr>
+         <tr>
+            <td><label class="score" id="lhs" onclick="chooseLimits(15, 21)">...</lable></td>
+            <td><label class="score" id="rhs" onclick="chooseLimits(21, 30)">...</label></td>
+         </tr>
+         <tr class="admin">
+            <td><button id="lhs_down" onclick="changeScore('lhs', -1)">-</button></td>
+            <td><button id="rhs_down" onclick="changeScore('rhs', -1)">-</button></td>
+         </tr>
+      </table>
+      <table width="100%" cellsspacing="0">
+         <tr>
+            <td><label width="100%" id="mode">UNKNOWN</label></td>
+         </tr>
+         <tr class="admin">
+            <td><button width="100%" id="swap" onclick="swapScore()">SWAP</button></td>
+         </tr>
+         <tr class="admin">
+            <td><button width="100%" id="reset" onclick="resetScore()">RESET</button></td>
+         </tr>
+         <tr>
+            <td>
+               <label width="100%" id="group">UNKNOWN</label>
+               <div class="guest"><label>Password: </label><input type="text" name="password" value="" id="password"></div>
+            </td>
+         </tr>
+      </table>
+   </body>
+</html>
