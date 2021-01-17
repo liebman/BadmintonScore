@@ -34,7 +34,7 @@
 #include <GFXFonts/br2_serif_score_23.h>
 #include <Fonts/Lekton_Bold_18.h>
 #include <MatrixHardware_ESP32_V0.h>
-#include <SmartMatrix3.h>
+#include <SmartMatrix.h>
 #include "Log.h"
 
 #if CONFIG_FREERTOS_UNICORE
@@ -51,8 +51,12 @@
 #define SCORE_FONT (&br2_serif_score_23)
 #define FPS_FONT (font3x5)
 #define STARTING_FONT (font5x7)
-#define SCROLL_FONT (&Lekton_Bold_18)
-#define GAME_OVER_FONT (&Lekton_Bold_18)
+#define STARTING_FONT_WIDTH (5)
+#define STARTING_FONT_HIGHT (7)
+#define SCROLL_FONT (gohufont11b)
+#define SCROLL_FONT_HIGHT (11)
+#define GAME_OVER_FONT (gohufont11b)
+#define GAME_OVER_FONT_HIGHT (11)
 
 #define SCORE_COLOR  white
 
@@ -232,7 +236,7 @@ void Display::drawChoices()
         scrollingLayer.setMode(wrapForward);
         scrollingLayer.setSpeed(60);
         scrollingLayer.setFont(SCROLL_FONT);
-        scrollingLayer.setOffsetFromTop(kMatrixHeight/2 - SCROLL_FONT->Height/2);
+        scrollingLayer.setOffsetFromTop(kMatrixHeight/2 - SCROLL_FONT_HIGHT/2);
         scrollingLayer.start("Choose Game Limit", -1);
     }
 }
@@ -264,7 +268,7 @@ void Display::gameOver()
 void Display::drawStarting()
 {
     const char* m = "Initializing";
-    int16_t w = STARTING_FONT->Width * strlen(m);
+    int16_t w = STARTING_FONT_WIDTH * strlen(m);
     int16_t x = kMatrixWidth/2 - w/2;
     int16_t y = 0;
     backgroundLayer.setFont(STARTING_FONT);
@@ -357,7 +361,7 @@ void Display::doTwinkle(int16_t x, int16_t y, uint16_t width, uint16_t height, u
     }
 
     // and some off
-    for (int i = 0; i < count; i++) {
+    for (size_t i = 0; i < count; i++) {
         x0 = x + random(width);
         y0 = y + random(height);
 
@@ -374,8 +378,6 @@ void Display::doPixels(int16_t x, int16_t y, uint16_t width, uint16_t height)
     {
         currentMillis = millis();
     }
-
-    int16_t x0, y0;
 
     rgb24 color;
     float fraction = ((float)millis() - currentMillis) / ((float)transitionTime / 2);
@@ -425,7 +427,7 @@ void Display::task()
                 scrollingLayer.setSpeed(40);
                 scrollingLayer.setFont(GAME_OVER_FONT);
                 scrollingLayer.setStartOffsetFromLeft(1);
-                scrollingLayer.setOffsetFromTop(kMatrixHeight/2 - GAME_OVER_FONT->Height/2);
+                scrollingLayer.setOffsetFromTop(kMatrixHeight/2 - GAME_OVER_FONT_HIGHT/2);
                 scrollingLayer.start("Game Over", 1);
             }
             else if (message != nullptr)
@@ -477,7 +479,7 @@ void Display::splash(const char* message)
     scrollingLayer.setMode(wrapForward);
     scrollingLayer.setSpeed(60);
     scrollingLayer.setFont(SCROLL_FONT);
-    scrollingLayer.setOffsetFromTop(kMatrixHeight/2 - SCROLL_FONT->Height/2);
+    scrollingLayer.setOffsetFromTop(kMatrixHeight/2 - SCROLL_FONT_HIGHT/2);
     scrollingLayer.start(message, 1);
 }
 
@@ -498,8 +500,8 @@ void Display::doMessage(const char* message)
     if (message)
     {
         dlog.info(TAG, "doMessage: %s", message);
-        int16_t w = STARTING_FONT->Width * strlen(message);
-        int16_t h = STARTING_FONT->Height;
+        int16_t w = STARTING_FONT_WIDTH * strlen(message);
+        int16_t h = STARTING_FONT_HIGHT;
         int16_t x = kMatrixWidth/2 - w/2;
         int16_t y = kMatrixHeight/2 - h/2;
         backgroundLayer.setFont(STARTING_FONT);
