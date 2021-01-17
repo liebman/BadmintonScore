@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.com/liebman/BadmintonScore.svg?branch=master)](https://travis-ci.com/liebman/BadmintonScore)
 # Badminton Scoreboard
 
 A simple LED Matrix scoreboard for badminton implemented for fun because some friends host a Badminton party in most years.
